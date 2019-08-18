@@ -3,7 +3,6 @@ function pldistance(p1, p2, x, y) {
   const den = p5.Vector.dist(p1, p2);
   return num / den;
 }
-
 class Particle {
   constructor(brain) {
     this.fitness = 0;
@@ -136,7 +135,7 @@ class Particle {
     translate(this.pos.x, this.pos.y);
     const heading = this.vel.heading();
     rotate(heading);
-    fill(255, 100);
+    fill(0, 100, 0);
     rectMode(CENTER);
     rect(0, 0, 10, 5);
     pop();
@@ -156,7 +155,7 @@ class Particle {
     stroke(0, 255, 0);
     fill(0, 255, 0);
     rectMode(CENTER);
-    rect(0, 0, 20, 10);
+    rect(0, 0, 20, 10, 50, 50);
     pop();
     for (let ray of this.rays) {
       ray.show();

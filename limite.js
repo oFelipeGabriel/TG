@@ -9,7 +9,7 @@ class Boundary{
   }
 
   show(){
-    stroke(255, 0, 140);
+    stroke(217, 196, 41);
     line(this.a.x, this.a.y, this.b.x, this.b.y);
   }
 }

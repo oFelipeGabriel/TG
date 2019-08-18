@@ -1,10 +1,3 @@
-// Daniel Shiffman
-// https://thecodingtrain.com/CodingChallenges/145-2d-ray-casting.html
-// https://youtu.be/TOEi6T2mtHo
-
-// 2D Ray Casting
-// https://editor.p5js.org/codingtrain/sketches/Nqsq3DFv-
-
 const TOTAL = 50;
 const MUTATION_RATE = 0.1;
 const LIFESPAN = 25;
@@ -25,6 +18,8 @@ let speedSlider;
 let inside = [];
 let outside = [];
 let checkpoints = [];
+
+let image;
 
 // around 5-6 successfully completed rounds will make the fitness of 500+
 // so maxFitness is set to 500
@@ -73,11 +68,20 @@ function buildTrack() {
   end = checkpoints[checkpoints.length - 1].midpoint();
 }
 
+function preload() {
+
+}
+let canva;
 function setup() {
+
+  canva = createCanvas(50,50);
+  image = loadImage('assets/Red_racing_car_top_view.png');
+
   createCanvas(1200, 650);
 
   tf.setBackend('cpu');
   buildTrack();
+
   // let a = inside[inside.length - 1];
   // let b = outside[outside.length - 1];
   // walls.push(new Boundary(a.x, a.y, b.x, b.y));
@@ -91,8 +95,7 @@ function setup() {
 
 function draw() {
   const cycles = speedSlider.value();
-  background(0,0,50);
-
+  background(51, 51, 51);
   let bestP = population[0];
   for (let n = 0; n < cycles; n++) {
     for (let particle of population) {
@@ -135,6 +138,7 @@ function draw() {
       nextGeneration();
       generationCount++;
     }
+    //image(image);
   }
 
   for (let cp of checkpoints) {
@@ -153,6 +157,7 @@ function draw() {
   fill(255);
   textSize(24);
   noStroke();
+
   text('generation ' + generationCount, 10, 50);
 
   // ellipse(start.x, start.y, 10);

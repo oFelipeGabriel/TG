@@ -1,10 +1,3 @@
-// Daniel Shiffman
-// https://thecodingtrain.com/CodingChallenges/145-2d-ray-casting.html
-// https://youtu.be/TOEi6T2mtHo
-
-// 2D Ray Casting
-// https://editor.p5js.org/codingtrain/sketches/Nqsq3DFv-
-
 class Ray {
   constructor(pos, angle) {
     this.pos = pos;
@@ -23,7 +16,8 @@ class Ray {
   }
 
   show() {
-    stroke(0, 140, 0, 100);
+    strokeWeight(2);
+    stroke(255, 255, 255, 40);
     push();
     translate(this.pos.x, this.pos.y);
     line(0, 0, this.dir.x * SIGHT, this.dir.y * SIGHT);
