@@ -6,315 +6,74 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.sound.min.js"></script> -->
     <script src="libs/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.10.0"></script>
     <script src="libs/tf.min.js"></script>
-    <script type="text/javascript" src="libs/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"> </script>
   </head>
   <body>
-    <script src="nn.js"></script>
-    <script src="funcs.js"></script>
-    <script src="raio.js"></script>
-    <script src="particula.js"></script>
-    <script src="limite.js"></script>
+    <div id="canva"></div>
+    <button id="btn">Salvar</button>
+    <button id="loadBtn">Load</button>
+    <input type="file" id="upload-json"/>
+    <input type="file" id="upload-weights"/>
+    <script src="RedeNeural.js"></script>
+    <script src="Raio.js"></script>
+    <script src="Particula.js"></script>
+    <script src="Parede.js"></script>
+
     <script type="text/javascript">
     const TOTAL = 50;
     const MUTATION_RATE = 0.1;
     const LIFESPAN = 25;
     const SIGHT = 50;
+
     function pldistance(p1, p2, x, y) {
       const num = abs((p2.y - p1.y) * x - (p2.x - p1.x) * y + p2.x * p1.y - p2.y * p1.x);
       const den = p5.Vector.dist(p1, p2);
       return num / den;
     }
-    class Carro{
-      construct(x1,y1){
-        this.x = x1;
-        this.y = y1;
+    function nextGeneration() {
+      calculateFitness(end);
+      for (let i = 0; i < TOTAL; i++) {
+        population[i] = pickOne();
       }
-      draw(img,x,y){
-        image(img,x-20,y-20, 60,40);
+      for (let i = 0; i < TOTAL; i++) {
+        savedParticles[i].dispose();
+      }
+      savedParticles = [];
+    }
 
+    function pickOne() {
+      let index = 0;
+      let r = random(1);
+      while (r > 0) {
+        r = r - savedParticles[index].fitness;
+        index++;
+      }
+      index--;
+      let particle = savedParticles[index];
+      // TODO implement copy Particle
+      let child = new Particula(particle.brain);
+      child.mutate();
+      return child;
+    }
+
+    function calculateFitness(target) {
+      for (let particle of savedParticles) {
+        particle.calculateFitness();
+      }
+      // Normalize all values
+      let sum = 0;
+      for (let particle of savedParticles) {
+        sum += particle.fitness;
+      }
+      for (let particle of savedParticles) {
+        particle.fitness = particle.fitness / sum;
       }
     }
-    class Parede{
-      constructor(x1, y1, x2, y2){
-        this.a = createVector(x1,y1);
-        this.b = createVector(x2,y2);
-      }
 
-      midpoint(){
-        return createVector((this.a.x + this.b.x)* 0.5, (this.a.y + this.b.y) * 0.5);
-      }
 
-      show(){
-        strokeWeight(4);
-        stroke(217, 196, 41);
-        line(this.a.x, this.a.y, this.b.x, this.b.y);
-      }
-    }
-    class Raio{
-      constructor(pos, angle){
-        this.pos = pos;
-        this.angle = angle;
-        this.dir = p5.Vector.fromAngle(angle);
-      }
-      lookAt(x, y){
-        this.dir.x = x - this.pos.x;
-        this.dir.y = y- this.pos.y;
-        this.dir.normalize();
-      }
-      rotate(offset){
-        this.dir = p5.Vector.fromAngle(this.angle + offset);
-      }
-      show(){
-        strokeWeight(2);
-        stroke(255,255,255,40);
-        push();
-        translate(this.pos.x, this.pos.y);
-        line(0, 0, this.dir.x * SIGHT, this.dir.y * SIGHT);
-        pop();
-      }
-      cast(wall){
-        const x1 = wall.a.x;
-        const y1 = wall.a.y;
-        const x2 = wall.b.x;
-        const y2 = wall.b.y;
 
-        const x3 = this.pos.x;
-        const y3 = this.pos.y;
-        const x4 = this.pos.x + this.dir.x;
-        const y4 = this.pos.y + this.dir.y;
-
-        const den = (x1 - x2)*(y3 - y4)-(y1 - y2)*(x3 - x4);
-        if(den == 0){
-          return;
-        }
-        const t = ((x1 - x3)*(y3 - y4)-(y1 - y3)*(x3 - x4)) / den;
-        const u = -((x1 - x2)*(y1 - y3)-(y1 - y2)*(x1 - x3)) / den;
-        if(t > 0 && t < 1 && u > 0){
-          const pt = createVector();
-          pt.x = x1 + t * (x2 - x1);
-          pt.y = y1 + t * (y2 - y1);
-          return pt;
-        } else{
-          return;
-        }
-      }
-    }
-    class Particula{
-      constructor(brain){
-        this.fitness = 0;
-        this.dead = false;
-        this.finished = false;
-        this.pos = createVector(start.x, start.y);
-        this.vel = createVector();
-        this.acc = createVector();
-        this.maxspeed = 5;
-        this.maxforce = 0.2;
-        this.sight = SIGHT;
-        this.rays = [];
-        this.index = 0;
-        this.counter = 0;
-        this.img = loadImage('assets/Red_racing_car_top_view.png'); // Load the image
-        for(let a = -45; a < 45; a += 15){
-          this.rays.push(new Ray(this.pos, radians(a)));
-        }
-        if(brain){
-          this.brain = brain.copy();
-        }else{
-          this.brain = new RedeNaural(this.rays.length,this.rays.length*2, 2)
-        }
-      }
-      dispose(){
-
-      }
-      applyForce(force){
-        this.acc.add(force);
-      }
-      update(){
-        if(!this.dead & !this.finished){
-          this.pos.add(this.vel);
-          this.vel.add(this.acc);
-          this.vel.limit(this.maxspeed);
-          this.acc.set(0,0);
-          this.counter++;
-          if(this.counter > LIFESPAN){
-            this.dead = true;
-          }
-
-          for(let i = 0; i < this.rays.length; i++){
-            this.rays[i].rotate(this.vel.heading());
-          }
-        }
-      }
-      check(checkpoints){
-        if(!this.finished){
-          this.goal = checkpoints[this.index];
-          const d = pldistance(
-            this.goal.a, this.goal.b,
-            this.pos.x,  this.pos.y
-          );
-          if(d < 5 ){
-            this.index = (this.index + 1) % checkpoints.length;
-            this.fitness++;
-            this.counter = 0;
-          }
-        }
-      }
-      calculateFitness(){
-        this.fitness = pow(2, this.fitness);
-      }
-      look(walls){
-        const inputs = [];
-        for(let i=0; i<this.rays.length;i++){
-          const ray = this.rays[i];
-          let closest = null;
-          let record = this.sight;
-          for(let wall of walls){
-            const pt = ray.cast(wall);
-            if(pt){
-              const d = p5.Vector.dist(this.pos, pt);
-              if(d < record && d < this.sight){
-                record = d;
-                closest = pt;
-              }
-            }
-          }
-          if(record<5){
-            this.dead = true;
-          }
-          inputs[i] = map(record, 0, 50, 1, 0);
-        }
-        const output = this.brain.predict(inputs);
-        let angle = map(output[0], 0, 1, -PI, PI);
-        let speed = map(output[1], 0, 1, 0, this.maxspeed);
-        angle += this.vel.heading();
-        const steering = p5.Vector.fromAngle(angle);
-        steering.setMag(speed);
-        steering.sub(this.vel);
-        steering.limit(this.maxforce);
-        this.applyForce(steering);
-      }
-      bounds(){
-        if(
-          this.pos.x > width ||
-          this.pos.x < 0 ||
-          this.pos.y > height ||
-          this.pos.y < 0
-        ){
-        this.dead = true;
-        }
-      }
-      show(){
-        push();
-
-        translate(this.pos.x, this.pos.y);
-
-        const heading = this.vel.heading();
-        rotate(heading);
-        // fill(0, 100, 0);
-        // rectMode(CENTER);
-        // rect(0,0,10,5);
-        pop();
-      }
-      image(){
-        return image(this.img, this.pos.x, this.pos.y, 40, 40);;
-      }
-      highlight() {
-        push();
-        translate(this.pos.x, this.pos.y);
-        const heading = this.vel.heading();
-        rotate(heading);
-        stroke(0, 255, 0);
-        //fill(0, 255, 0);
-        rectMode(CENTER);
-        rect(0, 0, 20, 10, 50, 50);
-
-        pop();
-        for (let ray of this.rays) {
-          ray.show();
-        }
-        if (this.goal) {
-          this.goal.show();
-        }
-      }
-    }
-    class RedeNaural{
-      constructor(a, b, c, d){
-        if(a instanceof tf.Sequential){
-          this.model = a;
-          this.input_nodes = b;
-          this.hidden_nodes = c;
-          this.output_nodes = d;
-        }else{
-          this.input_nodes = a;
-          this.hidden_nodes = b;
-          this.output_nodes = c;
-          this.model = this.createModel();
-        }
-      }
-      copy(){
-        return tf.tidy(() => {
-          const modelCopy = this.createModel();
-          const weights = this.model.getWeights();
-          const weightCopies = [];
-          for (let i=0; i<weights.length; i++){
-            weightCopies[i] = weights[i].clone();
-          }
-          modelCopy.setWeights(weightCopies);
-          return new RedeNaural(
-              modelCopy,
-              this.input_nodes,
-              this.hidden_nodes,
-            this.output_nodes);
-        });
-      }
-      mutate(rate){
-        tf.tidy(() => {
-          const weights = this.model.getWeights();
-          const mutatedWeights = [];
-          for(let i=0; i<weights.length; i++){
-            let tensor = weights[i];
-            let shape = weights[i].shape;
-            let values = tensor.dataSync().slice();
-            for(let j=0; j<values.length; j++){
-              if(random(1)<rate){
-                let w = values[j];
-                values[j] = w + randomGaussian();
-              }
-            }
-            let newTensor = tf.tensor(values, shape);
-            mutatedWeights[i] = newTensor;
-          }
-          this.model.setWeights(mutatedWeights);
-        });
-      }
-      dispose(){
-        this.model.dispose();
-      }
-      predict(inputs){
-        return tf.tidy(() => {
-          const xs = tf.tensor2d([inputs]);
-          const ys = this.model.predict(xs);
-          const outputs = ys.dataSync();
-          return outputs;
-        })
-      }
-      createModel(){
-        const model = tf.sequential();
-        const hidden = tf.layers.dense({
-          units: this.hidden_nodes,
-          inputShape: [this.input_nodes],
-          activation: 'sigmoid'
-        });
-        model.add(hidden);
-        const output = tf.layers.dense({
-          units: this.output_nodes,
-          activation: 'sigmoid'
-        });
-        model.add(output);
-        return model;
-      }
-    }
     let img; // Declare variable 'img'.
     let c;
     let paredes = [];
@@ -323,6 +82,7 @@
     let population = [];
     let savedParticles = [];
     let speedSlider = 5;
+    let bestP = null;
     const maxFitness = 500;
     let changeMap = false;
     let generationCount = 0;
@@ -330,7 +90,7 @@
       checkpoints = [];
       inside = [];
       outside = [];
-
+      street = [];
       let noiseMax = 4;
       const total = 60;
       const pathWidth = 60;
@@ -340,8 +100,8 @@
         let a = map(i, 0, total, 0, TWO_PI);
         let xoff = map(cos(a), -1, 1, 0, noiseMax) + startX;
         let yoff = map(sin(a), -1, 1, 0, noiseMax) + startY;
-        let xr = map(noise(xoff, yoff), 0, 2, 100, width * 0.5);
-        let yr = map(noise(xoff, yoff), 0, 2, 100, height * 0.5);
+        let xr = map(noise(xoff, yoff), 0, 2, 250, width * 0.6);
+        let yr = map(noise(xoff, yoff), 0, 2, 190, height * 0.6);
         let x1 = width / 2 + (xr - pathWidth) * cos(a);
         let y1 = height / 2 + (yr - pathWidth) * sin(a);
         let x2 = width / 2 + (xr + pathWidth) * cos(a);
@@ -366,12 +126,26 @@
       start = checkpoints[0].midpoint();
       end = checkpoints[checkpoints.length - 1].midpoint();
     }
+    function salvar(){
+      console.log(bestP)
+      // let p = pickOne();
+      const saveResults = bestP.brain.model.save('downloads://my-model-1');
+    }
+    async function getModelSalvo(){
 
+      const uploadJSONInput = document.getElementById('upload-json');
+      const uploadWeightsInput = document.getElementById('upload-weights');
+      //bestP.brain.model = await loadModel(tf.io.browserFiles(
+      //  [uploadJSONInput.files[0], uploadWeightsInput.files[0]]));
+      const loaded = await tf.loadModel(tf.io.browserFiles([uploadJSONInput.files[0], uploadWeightsInput.files[0]]));
+    }
     function setup() {
-      createCanvas(1220, 600);
+      let canva = createCanvas(1220, 600);
+      canva.parent('canva');
       tf.setBackend('cpu');
       buildTrack();
-
+      document.getElementById('btn').addEventListener('click', salvar);
+      document.getElementById('loadBtn').addEventListener('click', getModelSalvo);
       for (let i = 0; i < TOTAL; i++) {
         population[i] = new Particula();
       }
@@ -384,7 +158,7 @@
       for(let x=0;x<paredes.length;x++){
         paredes[x].show();
       }
-      let bestP = population[0];
+      bestP = population[0];
       for(let n=0;n<cycles;n++){
         for(let particle in population){
           population[particle].look(walls);
@@ -430,11 +204,11 @@
 
       bestP.highlight();
 
-      //fill(255);
+      fill('#ffcc00');
       textSize(24);
       noStroke();
 
-      text('generation ' + generationCount, 10, 50);
+      text('Generation: ' + generationCount, 10, 570);
     }
     </script>
   </body>
