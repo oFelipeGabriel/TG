@@ -71,7 +71,7 @@ class Particula{
   calculateFitness(){
     this.fitness = pow(2, this.fitness);
   }
-  look(walls){
+  setInputs(walls){
     const inputs = [];
     for(let i=0; i<this.rays.length;i++){
       const ray = this.rays[i];
@@ -92,7 +92,12 @@ class Particula{
       }
       inputs[i] = map(record, 0, 50, 1, 0);
     }
+    return inputs;
+  }
+  look(walls){
+    let inputs = this.setInputs(walls)
     const output = this.brain.predict(inputs);
+
     let angle = map(output[0], 0, 1, -PI, PI);
     let speed = map(output[1], 0, 1, 0, this.maxspeed);
     angle += this.vel.heading();

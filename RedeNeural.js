@@ -11,7 +11,8 @@ class RedeNaural{
       this.output_nodes = c;
       this.model = this.createModel();
     }
-
+    this.result = null;
+    this.dispose = false;
   }
   copy(){
     return tf.tidy(() => {
@@ -50,6 +51,7 @@ class RedeNaural{
     });
   }
   dispose(){
+    this.result = null;
     this.model.dispose();
   }
   predict(inputs){
@@ -57,6 +59,15 @@ class RedeNaural{
       const xs = tf.tensor2d([inputs]);
       const ys = this.model.predict(xs);
       const outputs = ys.dataSync();
+      // const proximity = tf.metrics.binaryAccuracy (ys, outputs);
+      // proximity.print();
+      let yOut = [];
+      for(let i in outputs){
+        yOut.push(outputs[i]);
+      }
+      this.model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy'});
+      this.result = this.model.evaluate(xs, tf.tensor2d([yOut]), {batchSize: 4});
+
       return outputs;
     })
   }
@@ -74,6 +85,23 @@ class RedeNaural{
     });
     model.add(output);
     return model;
+  }
+  getAcc(inputs){
+    return tf.tidy(() => {
+      const xs = tf.tensor2d([inputs]);
+      const ys = this.model.predict(xs);
+      const outputs = ys.dataSync();
+      // const proximity = tf.metrics.binaryAccuracy (ys, outputs);
+      // proximity.print();
+      let yOut = [];
+      for(let i in outputs){
+        yOut.push(outputs[i]);
+      }
+      this.model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy'});
+      const result = this.model.evaluate(xs, tf.tensor2d([yOut]), {batchSize: 4});
+
+      return result.print();
+    })
   }
   save(){
     const saveResults = this.model.save('downloads://my-model-1');

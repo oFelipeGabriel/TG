@@ -6,9 +6,9 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.sound.min.js"></script> -->
     <script src="libs/p5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.10.0"></script>
+    <!-- <script src="libs/tfjs@0-10-0.js"></script> -->
     <script src="libs/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"> </script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"> </script> -->
   </head>
   <body>
     <div id="canva"></div>
@@ -137,7 +137,7 @@
       const uploadWeightsInput = document.getElementById('upload-weights');
       //bestP.brain.model = await loadModel(tf.io.browserFiles(
       //  [uploadJSONInput.files[0], uploadWeightsInput.files[0]]));
-      const loaded = await tf.loadModel(tf.io.browserFiles([uploadJSONInput.files[0], uploadWeightsInput.files[0]]));
+      const loaded = await tf.loadLayersModel(tf.io.browserFiles([uploadJSONInput.files[0]]));
     }
     function setup() {
       let canva = createCanvas(1220, 600);
@@ -201,7 +201,9 @@
       for (let particle of population) {
         particle.show();
       }
-
+      if(generationCount%3==0){
+        bestP.brain.getAcc(bestP.setInputs(walls));
+      }
       bestP.highlight();
 
       fill('#ffcc00');
