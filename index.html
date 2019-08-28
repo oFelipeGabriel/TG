@@ -86,6 +86,7 @@
     const maxFitness = 500;
     let changeMap = false;
     let generationCount = 0;
+    let acc = '';
     function buildTrack() {
       checkpoints = [];
       inside = [];
@@ -100,8 +101,8 @@
         let a = map(i, 0, total, 0, TWO_PI);
         let xoff = map(cos(a), -1, 1, 0, noiseMax) + startX;
         let yoff = map(sin(a), -1, 1, 0, noiseMax) + startY;
-        let xr = map(noise(xoff, yoff), 0, 2, 250, width * 0.6);
-        let yr = map(noise(xoff, yoff), 0, 2, 190, height * 0.6);
+        let xr = map(noise(xoff, yoff), 0, 2, 250, width * 0.9);
+        let yr = map(noise(xoff, yoff), 0, 2, 190, height * 0.8);
         let x1 = width / 2 + (xr - pathWidth) * cos(a);
         let y1 = height / 2 + (yr - pathWidth) * sin(a);
         let x2 = width / 2 + (xr + pathWidth) * cos(a);
@@ -202,8 +203,9 @@
         particle.show();
       }
       if(generationCount%3==0){
-        bestP.brain.getAcc(bestP.setInputs(walls));
+
       }
+      accuracy = bestP.brain.getAcc(bestP.setInputs(walls));
       bestP.highlight();
 
       fill('#ffcc00');
@@ -211,6 +213,7 @@
       noStroke();
 
       text('Generation: ' + generationCount, 10, 570);
+      text('Accuracy: '+ String(accuracy), 10, 590)
     }
     </script>
   </body>

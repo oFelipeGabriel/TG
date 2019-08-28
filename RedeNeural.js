@@ -97,10 +97,15 @@ class RedeNaural{
       for(let i in outputs){
         yOut.push(outputs[i]);
       }
-      this.model.compile({optimizer: 'sgd', loss: 'categoricalCrossentropy'});
-      const result = this.model.evaluate(xs, tf.tensor2d([yOut]), {batchSize: 4});
+      this.model.compile({optimizer: 'sgd', loss: 'binaryCrossentropy', metrics: ['accuracy'],});
+      const accuracy = tf.metrics.categoricalAccuracy(xs, tf.tensor2d([yOut]));
 
-      return result.print();
+      const result = this.model.evaluate(xs, tf.tensor2d([yOut]), {batchSize: 8});
+      //
+      let b = accuracy.toString().replace('Tensor', '');
+      let a = result.toString().replace('Tensor', '');
+      console.log(String(a).replace('Tensor', ''));
+      return a.toString();
     })
   }
   save(){
