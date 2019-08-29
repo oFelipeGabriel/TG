@@ -9,9 +9,11 @@
     <!-- <script src="libs/tfjs@0-10-0.js"></script> -->
     <script src="libs/tf.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"> </script> -->
+    <script src="libs/canvasjs.min.js"></script>
   </head>
   <body>
     <div id="canva"></div>
+    <div id="chart"></div>
     <button id="btn">Salvar</button>
     <button id="loadBtn">Load</button>
     <input type="file" id="upload-json"/>
@@ -87,6 +89,8 @@
     let changeMap = false;
     let generationCount = 0;
     let acc = '';
+    let accs = [];
+
     function buildTrack() {
       checkpoints = [];
       inside = [];
@@ -151,6 +155,7 @@
         population[i] = new Particula();
       }
       //speedSlider = createSlider(1, 10, 1);
+
     }
 
     function draw() {
@@ -206,6 +211,7 @@
 
       }
       accuracy = bestP.brain.getAcc(bestP.setInputs(walls));
+      accs.push(accuracy);
       bestP.highlight();
 
       fill('#ffcc00');
@@ -214,6 +220,23 @@
 
       text('Generation: ' + generationCount, 10, 570);
       text('Accuracy: '+ String(accuracy), 10, 590)
+      //atualizaGrafico(accs);
+    }
+    function atualizaGrafico(acs){
+      chart = null;
+      var chart = new CanvasJS.Chart("chart", {
+        title :{
+          text: "Dynamic Data"
+        },
+        axisY: {
+          includeZero: false
+        },
+        data: [{
+          type: "line",
+          dataPoints: parseFloat(acs)
+        }]
+      });
+      chart.render();
     }
     </script>
   </body>

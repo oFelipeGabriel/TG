@@ -102,10 +102,11 @@ class RedeNaural{
 
       const result = this.model.evaluate(xs, tf.tensor2d([yOut]), {batchSize: 8});
       //
-      let b = accuracy.toString().replace('Tensor', '');
-      let a = result.toString().replace('Tensor', '');
-      console.log(String(a).replace('Tensor', ''));
-      return a.toString();
+      let b = accuracy;
+      let a = result;
+      var logMessages = [];
+      logMessages.push.apply(logMessages, arguments);
+      return parseFloat(logMessages[0][logMessages[0].length-1]).toFixed(2);
     })
   }
   save(){
