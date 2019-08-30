@@ -106,7 +106,10 @@ class RedeNaural{
       let a = result;
       var logMessages = [];
       logMessages.push.apply(logMessages, arguments);
-      return parseFloat(logMessages[0][logMessages[0].length-1]).toFixed(2);
+      for(let x=0;x<logMessages[0].length;x++){
+        logMessages[0][x] = parseFloat(logMessages[0][x]).toFixed(2);
+      }
+      return logMessages;
     })
   }
   save(){
